@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🕵️ LINK DETECTIVE - Cyber Mission</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#05051a',     // Very dark blue background
+                            panel: '#101030',    // Panel background
+                            cyan: '#00f3ff',     // Neon Cyan (Primary)
+                            pink: '#ff007f',     // Neon Pink (Accent)
+                            green: '#39ff14',    // Neon Green (Safe/Success)
+                            yellow: '#fdfd96',   // Neon Yellow (Warning/Stars)
+                            red: '#ff1744'       // Neon Red (Danger)
+                        }
+                    },
+                    animation: {
+                        'float': 'float 4s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'scanline': 'scanline 3s linear infinite',
+                        'glitch': 'glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite',
+                        'fade-in': 'fadeIn 0.6s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s ease-out forwards'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 15px rgba(0, 243, 255, 0.4)' },
+                            '50%': { boxShadow: '0 0 30px rgba(0, 243, 255, 0.8), 0 0 10px rgba(0, 243, 255, 0.5)' },
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(400%)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['"Nunito"', 'sans-serif'],
+                        'mono': ['"Share Tech Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Nunito', sans-serif; 
+            background-color: #05051a; 
+            color: #ffffff; 
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center center;
+            overflow-x: hidden;
+        }
+        
+        .font-tech { font-family: 'Share Tech Mono', monospace; }
+
+        /* Glassmorphism Cyber Panels */
+        .cyber-panel {
+            background: rgba(16, 16, 48, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* Neon Borders */
+        .neon-border-cyan { border: 2px solid #00f3ff; box-shadow: 0 0 10px #00f3ff, inset 0 0 10px #00f3ff; }
+        .neon-border-pink { border: 2px solid #ff007f; box-shadow: 0 0 10px #ff007f, inset 0 0 10px #ff007f; }
+        .neon-border-red { border: 2px solid #ff1744; box-shadow: 0 0 15px #ff1744, inset 0 0 15px #ff1744; }
+        .neon-border-green { border: 2px solid #39ff14; box-shadow: 0 0 15px #39ff14, inset 0 0 15px #39ff14; }
+        .neon-border-yellow { border: 2px solid #fdfd96; box-shadow: 0 0 10px #fdfd96, inset 0 0 10px #fdfd96; }
+
+        /* Glowing Text */
+        .text-glow-cyan { text-shadow: 0 0 8px #00f3ff; }
+        .text-glow-pink { text-shadow: 0 0 8px #ff007f; }
+        .text-glow-red { text-shadow: 0 0 10px #ff1744; }
+        
+        /* Interactive Buttons */
+        .cyber-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .cyber-btn:active { transform: scale(0.95); }
+        .cyber-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .cyber-btn:hover::before { left: 100%; }
+
+        /* Scanner line for Game */
+        .scanner-line {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: #00f3ff;
+            box-shadow: 0 0 20px #00f3ff, 0 0 40px #00f3ff;
+            opacity: 0.7;
+            z-index: 10;
+        }
+
+        /* Hide Scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const gameCases = [
+            {
+                id: 1, sender: "Unknown Number",
+                message: "🎉 YOU WON!\nYou won a new bicycle! 🚲\nClick this link NOW to get your prize!",
+                options: ["SAFE 🟢", "CHECK FIRST 🟡", "SUSPICIOUS — SKIP! 🔴"],
+                correct: 2,
+                explanation: "Unexpected prize + urgent message ('NOW') + unknown link = Suspicious trap!"
+            },
+            {
+                id: 2, sender: "👩‍🏫 Teacher's Message",
+                message: "Hello students!\nHere is the link for today's online lesson.",
+                options: ["SUSPICIOUS — SKIP! 🔴", "CHECK FIRST 🟡", "SAFE 🟢"],
+                correct: 1,
+                explanation: "Make sure the message really comes from your teacher and the link is expected."
+            },
+            {
+                id: 3, sender: "System Alert",
+                message: "🎮 FREE GAME MONEY!!!\nEnter your username and password NOW!",
+                options: ["SAFE 🟢", "CHECK FIRST 🟡", "SUSPICIOUS — SKIP! 🔴"],
+                correct: 2,
+                explanation: "It asks for a password and uses an urgent message. Never share your password!"
+            },
+            {
+                id: 4, sender: "👨‍👩‍👧 Mom",
+                message: "Please open the family photo album using our usual family-sharing app.",
+                options: ["LIKELY SAFE — BUT CHECK! 🟢", "SUSPICIOUS — SKIP! 🔴", "CHECK FIRST 🟡"],
+                correct: 0,
+                explanation: "Make sure the message really comes from Mom and the app is familiar."
+            }
+        ];
+
+        const quizQuestions = [
+            { q: "What should you do FIRST when you receive a suspicious link?", opts: ["Click it", "Share it with friends", "Stop and think", "Enter your password"], correct: 2, explanation: "Always STOP first before taking any action!" },
+            { q: "Which message is suspicious?", opts: ["Your teacher sent today's lesson link.", "You won $10,000! Click NOW!", "Your parent sent a family photo.", "Your school sent an announcement."], correct: 1, explanation: "Messages offering massive unexpected prizes and demanding urgent action are highly suspicious." },
+            { q: "What should you NEVER share with strangers online?", opts: ["Your favorite color", "Your password", "Your favorite food", "Your hobby"], correct: 1, explanation: "Your password is the key to your personal information. Never share it!" },
+            { q: "Which word shows the sequence of the final step?", opts: ["First", "Next", "Finally", "Yesterday"], correct: 2, explanation: "'Finally' indicates the last step in our sequence: Decide." },
+            { q: "Complete the sentence: 'Please ______ the link carefully.'", opts: ["check", "checking", "checked", "clicks"], correct: 0, explanation: "Use the base verb 'check' for polite imperatives." }
+        ];
+
+        const Navigation = ({ currentView, setView }) => {
+            const navItems = [
+                { id: 'home', icon: '🏠', label: 'HQ' },
+                { id: 'mission', icon: '🛡️', label: 'Protocol' },
+                { id: 'english', icon: '💬', label: 'Comms' },
+                { id: 'game', icon: '🎯', label: 'Scanner' },
+                { id: 'quiz', icon: '🧠', label: 'Exam' },
+                { id: 'presentation', icon: '🎤', label: 'Briefing' },
+                { id: 'teacher', icon: '👨‍🏫', label: 'Director' }
+            ];
+
+            return (
+                <nav className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 w-[95%] max-w-4xl">
+                    <div className="cyber-panel neon-border-cyan rounded-full px-2 py-2 flex justify-between overflow-x-auto no-scrollbar items-center shadow-2xl">
+                        {navItems.map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => setView(item.id)}
+                                className={`flex items-center space-x-2 px-4 py-3 rounded-full whitespace-nowrap transition-all duration-300 mx-1 cyber-btn ${
+                                    currentView === item.id 
+                                    ? 'bg-cyber-cyan text-black font-black shadow-[0_0_15px_#00f3ff]' 
+                                    : 'bg-transparent text-cyber-cyan hover:bg-cyber-cyan/20 hover:text-white font-bold'
+                                }`}
+                            >
+                                <span className="text-xl">{item.icon}</span>
+                                <span className="hidden md:inline uppercase tracking-wider text-sm">{item.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </nav>
+            );
+        };
+
+        const HomeView = ({ setView }) => {
+            const [hookState, setHookState] = useState('initial');
+
+            return (
+                <div className="flex flex-col items-center justify-center min-h-[85vh] px-4 animate-fade-in text-center pb-20">
+                    {hookState === 'initial' && (
+                        <div className="max-w-3xl w-full">
+                            <div className="mb-8 animate-float">
+                                <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan to-cyber-pink tracking-tighter text-glow-cyan">
+                                    LINK DETECTIVE
+                                </h1>
+                                <p className="text-2xl md:text-3xl font-tech text-cyber-cyan mt-2 uppercase tracking-widest text-glow-cyan">
+                                    Be Smart Before You Click!
+                                </p>
+                            </div>
+                            
+                            <p className="text-xl text-gray-300 font-bold mb-10">
+                                A link can look friendly... <span className="text-cyber-red">but it may be a trap!</span>
+                            </p>
+                            
+                            {/* Simulated Smartphone Hologram */}
+                            <div className="cyber-panel neon-border-cyan rounded-3xl p-1 relative max-w-md mx-auto mb-8 animate-slide-up transform hover:scale-[1.02] transition-transform duration-300">
+                                {/* Top Warning Bar */}
+                                <div className="bg-cyber-red text-white font-black py-3 px-4 rounded-t-3xl flex items-center justify-center space-x-2 animate-pulse">
+                                    <span>🚨</span>
+                                    <span className="tracking-widest">INCOMING TRANSMISSION!</span>
+                                    <span>🚨</span>
+                                </div>
+                                
+                                <div className="p-6 text-left bg-black/50 rounded-b-3xl">
+                                    <div className="font-tech text-cyber-cyan text-sm mb-4 border-b border-cyber-cyan/30 pb-2">
+                                        &gt; SENDER_ID: UNKNOWN_USER<br/>
+                                        &gt; STATUS: ENCRYPTED
+                                    </div>
+                                    
+                                    <h2 className="font-black text-3xl text-cyber-yellow mb-2 text-glow-yellow">🎉 CONGRATULATIONS!</h2>
+                                    <p className="text-xl text-white font-bold">You have won a <span className="text-cyber-pink">FREE SMARTPHONE!</span> 📱</p>
+                                    <p className="text-gray-400 mt-2 mb-4">Click here NOW to claim your prize!</p>
+                                    
+                                    <div className="bg-cyber-cyan/10 text-cyber-cyan p-3 rounded-lg text-center font-mono font-bold break-all border border-cyber-cyan/50 mb-6">
+                                        http://claim-free-phone-now-urgent.xyz
+                                    </div>
+                                    
+                                    <h3 className="font-black text-xl mb-4 text-center text-white">❓ WHAT WILL YOU DO, AGENT?</h3>
+                                    
+                                    <div className="flex flex-col gap-4">
+                                        <button 
+                                            onClick={() => setHookState('warning')}
+                                            className="cyber-btn bg-cyber-red/20 border-2 border-cyber-red hover:bg-cyber-red text-white font-black py-4 px-6 rounded-xl shadow-[0_0_15px_rgba(255,23,68,0.5)] transition-all"
+                                        >
+                                            🔴 CLAIM YOUR PHONE NOW! (CLICK IT!)
+                                        </button>
+                                        <button 
+                                            onClick={() => setHookState('success')}
+                                            className="cyber-btn bg-cyber-cyan text-black font-black py-4 px-6 rounded-xl shadow-[0_0_15px_rgba(0,243,255,0.8)] hover:bg-white transition-all flex items-center justify-center space-x-2"
+                                        >
+                                            <span>🕵️</span>
+                                            <span>STOP & CHECK!</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {hookState === 'warning' && (
+                        <div className="cyber-panel neon-border-red p-8 rounded-3xl max-w-lg w-full animate-slide-up">
+                            <div className="text-7xl mb-4 animate-float">🚨</div>
+                            <h2 className="text-5xl font-black text-cyber-red mb-4 text-glow-red tracking-wider">WAIT!</h2>
+                            <p className="text-2xl font-bold mb-4 text-white">That could be a suspicious link!</p>
+                            <p className="text-xl mb-8 text-gray-400">One click can put your information at risk.</p>
+                            <button 
+                                onClick={() => setHookState('initial')}
+                                className="cyber-btn bg-cyber-red text-white font-black py-4 px-8 rounded-full text-xl shadow-[0_0_20px_#ff1744] hover:bg-white hover:text-cyber-red w-full uppercase"
+                            >
+                                Try Again, Detective 🔎
+                            </button>
+                        </div>
+                    )}
+
+                    {hookState === 'success' && (
+                        <div className="cyber-panel neon-border-green p-8 rounded-3xl max-w-lg w-full animate-slide-up relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-full bg-cyber-green/10 animate-pulse"></div>
+                            <div className="relative z-10">
+                                <div className="text-7xl mb-4 animate-float">🎉</div>
+                                <h2 className="text-5xl font-black text-cyber-green mb-4 text-shadow-glow">GREAT JOB!</h2>
+                                <p className="text-2xl font-bold mb-4 text-white">You didn't click immediately.</p>
+                                <p className="text-xl mb-8 text-cyber-cyan">A smart student checks first!</p>
+                                <button 
+                                    onClick={() => setView('mission')}
+                                    className="cyber-btn bg-cyber-green text-black font-black py-4 px-8 rounded-full text-2xl shadow-[0_0_20px_#39ff14] hover:bg-white w-full uppercase animate-pulse-glow"
+                                >
+                                    Let's Start Your Mission 🚀
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const MissionView = () => {
+            return (
+                <div className="max-w-6xl mx-auto px-4 py-12 animate-fade-in pb-24">
+                    <div className="text-center mb-16">
+                        <p className="font-tech text-cyber-cyan text-xl tracking-[0.3em] mb-2">SYSTEM ARCHIVE // PROTOCOL S.C.D.</p>
+                        <h2 className="text-5xl md:text-6xl font-black text-white mb-4">🕵️ THE LINK DETECTIVE CODE</h2>
+                        <h3 className="text-2xl font-bold text-cyber-pink text-glow-pink">Master the 3-Step Security Protocol</h3>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8 mb-16">
+                        {/* Step 1 */}
+                        <div className="cyber-panel neon-border-red rounded-3xl p-8 relative overflow-hidden group hover:-translate-y-2 transition-transform duration-300">
+                            <div className="absolute -right-4 -top-4 text-9xl font-black text-cyber-red/10 group-hover:text-cyber-red/20 transition-colors">S</div>
+                            <h3 className="text-3xl font-black text-cyber-red mb-4 flex items-center"><span className="text-4xl mr-3">🛑</span> FIRST: STOP!</h3>
+                            <div className="bg-cyber-red/10 border-l-4 border-cyber-red p-4 mb-6 rounded-r-lg">
+                                <p className="font-bold text-lg text-white italic">"Please don't click the link immediately."</p>
+                            </div>
+                            <p className="font-tech text-cyber-cyan mb-2 text-lg">SYSTEM QUERY:</p>
+                            <ul className="space-y-3 mb-6 text-gray-300 font-bold">
+                                <li className="flex items-start"><span className="text-cyber-red mr-2">❓</span> Do I know the sender?</li>
+                                <li className="flex items-start"><span className="text-cyber-red mr-2">❓</span> Did I ask for this message?</li>
+                                <li className="flex items-start"><span className="text-cyber-red mr-2">❓</span> Is the offer too good to be true?</li>
+                                <li className="flex items-start"><span className="text-cyber-red mr-2">❓</span> Does the message make me feel rushed?</li>
+                            </ul>
+                            <div className="bg-cyber-red text-white p-4 rounded-xl font-bold text-sm mt-auto shadow-[0_0_10px_#ff1744]">
+                                ⚠️ WARNING: Never click a suspicious link just because someone tells you to.
+                            </div>
+                        </div>
+
+                        {/* Step 2 */}
+                        <div className="cyber-panel neon-border-yellow rounded-3xl p-8 relative overflow-hidden group hover:-translate-y-2 transition-transform duration-300">
+                            <div className="absolute -right-4 -top-4 text-9xl font-black text-cyber-yellow/10 group-hover:text-cyber-yellow/20 transition-colors">C</div>
+                            <h3 className="text-3xl font-black text-cyber-yellow mb-4 flex items-center"><span className="text-4xl mr-3">🔍</span> NEXT: CHECK!</h3>
+                            <div className="bg-cyber-yellow/10 border-l-4 border-cyber-yellow p-4 mb-6 rounded-r-lg">
+                                <p className="font-bold text-lg text-white italic">"Please check the sender and website address carefully."</p>
+                            </div>
+                            <p className="font-tech text-cyber-cyan mb-2 text-lg">SCAN FOR THREATS:</p>
+                            <ul className="space-y-3 mb-6 text-gray-300 font-bold">
+                                <li className="flex items-start"><span className="text-cyber-yellow mr-2">🔎</span> Unknown sender</li>
+                                <li className="flex items-start"><span className="text-cyber-yellow mr-2">🔎</span> Strange website address</li>
+                                <li className="flex items-start"><span className="text-cyber-yellow mr-2">🔎</span> Misspelled words</li>
+                                <li className="flex items-start"><span className="text-cyber-yellow mr-2">🔎</span> Fake prizes & Urgent messages</li>
+                            </ul>
+                            <div className="bg-cyber-yellow text-black p-4 rounded-xl font-bold text-sm mt-auto shadow-[0_0_10px_#fdfd96]">
+                                ⚠️ WARNING: Never enter your password or personal information on a suspicious website.
+                            </div>
+                        </div>
+
+                        {/* Step 3 */}
+                        <div className="cyber-panel neon-border-cyan rounded-3xl p-8 relative overflow-hidden group hover:-translate-y-2 transition-transform duration-300">
+                            <div className="absolute -right-4 -top-4 text-9xl font-black text-cyber-cyan/10 group-hover:text-cyber-cyan/20 transition-colors">D</div>
+                            <h3 className="text-3xl font-black text-cyber-cyan mb-4 flex items-center"><span className="text-4xl mr-3">🧠</span> FINALLY: DECIDE!</h3>
+                            <div className="bg-cyber-cyan/10 border-l-4 border-cyber-cyan p-4 mb-6 rounded-r-lg">
+                                <p className="font-bold text-lg text-white italic">"If you are unsure, please ask an adult for help."</p>
+                            </div>
+                            <p className="font-tech text-cyber-cyan mb-2 text-lg">EXECUTE ACTION:</p>
+                            <ul className="space-y-3 mb-6 text-gray-300 font-bold">
+                                <li className="flex items-start"><span className="text-cyber-cyan mr-2">❌</span> Don't click it.</li>
+                                <li className="flex items-start"><span className="text-cyber-cyan mr-2">🗑️</span> Delete the message.</li>
+                                <li className="flex items-start"><span className="text-cyber-cyan mr-2">🚩</span> Report it.</li>
+                                <li className="flex items-start"><span className="text-cyber-cyan mr-2">👨‍👩‍👧</span> Ask a trusted adult.</li>
+                            </ul>
+                            <div className="bg-cyber-cyan text-black p-4 rounded-xl font-bold text-sm mt-auto shadow-[0_0_10px_#00f3ff]">
+                                ⚠️ WARNING: Never share your password or personal information with strangers.
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer Banner */}
+                    <div className="cyber-panel neon-border-pink rounded-3xl p-8 text-center animate-pulse-glow max-w-4xl mx-auto">
+                        <h2 className="text-2xl font-tech text-cyber-pink tracking-[0.2em] mb-4">// OVERRIDE COMMAND //</h2>
+                        <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8 text-3xl font-black text-white">
+                            <span className="flex items-center"><span className="text-cyber-red mr-2">STOP</span></span>
+                            <span className="hidden md:inline text-cyber-cyan">→</span>
+                            <span className="flex items-center"><span className="text-cyber-yellow mr-2">CHECK</span></span>
+                            <span className="hidden md:inline text-cyber-cyan">→</span>
+                            <span className="flex items-center"><span className="text-cyber-cyan mr-2">DECIDE</span></span>
+                        </div>
+                        <h3 className="mt-6 text-3xl font-black text-cyber-green uppercase tracking-widest">BE SMART BEFORE YOU CLICK!</h3>
+                    </div>
+                </div>
+            );
+        };
+
+        const EnglishToolsView = () => {
+            return (
+                <div className="max-w-5xl mx-auto px-4 py-12 animate-fade-in pb-24">
+                    <div className="text-center mb-12">
+                        <h2 className="text-5xl font-black text-white mb-4">🗣️ English Detective Tools</h2>
+                        <p className="text-xl font-tech text-cyber-cyan">Decode the language of safety</p>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {/* Sequencing Words */}
+                        <div className="cyber-panel neon-border-cyan rounded-3xl p-8 transform transition hover:scale-105">
+                            <div className="text-5xl mb-4 text-center">🔢</div>
+                            <h3 className="text-2xl font-black text-center mb-4 text-cyber-cyan">Sequencing Words</h3>
+                            <p className="text-gray-400 font-bold text-center mb-6">Words that tell us the order of steps.</p>
+                            <div className="space-y-4 font-tech">
+                                <div className="bg-cyber-cyan/20 border border-cyber-cyan p-4 rounded-xl text-center font-black text-2xl text-white tracking-widest">🥇 FIRST</div>
+                                <div className="bg-cyber-cyan/20 border border-cyber-cyan p-4 rounded-xl text-center font-black text-2xl text-white tracking-widest">🥈 NEXT</div>
+                                <div className="bg-cyber-cyan/20 border border-cyber-cyan p-4 rounded-xl text-center font-black text-2xl text-white tracking-widest">🥉 FINALLY</div>
+                            </div>
+                        </div>
+
+                        {/* Polite Imperatives */}
+                        <div className="cyber-panel neon-border-pink rounded-3xl p-8 transform transition hover:scale-105">
+                            <div className="text-5xl mb-4 text-center">🙏</div>
+                            <h3 className="text-2xl font-black text-center mb-4 text-cyber-pink">Polite Imperatives</h3>
+                            <p className="text-gray-400 font-bold text-center mb-6">Giving instructions politely using 'Please'.</p>
+                            <div className="space-y-4">
+                                <div className="bg-cyber-pink/10 border-l-4 border-cyber-pink p-4 rounded-r-xl">
+                                    <p className="font-bold text-white">"<span className="text-cyber-pink font-black">Please</span> don't click the link immediately."</p>
+                                </div>
+                                <div className="bg-cyber-pink/10 border-l-4 border-cyber-pink p-4 rounded-r-xl">
+                                    <p className="font-bold text-white">"<span className="text-cyber-pink font-black">Please</span> check the sender and website address carefully."</p>
+                                </div>
+                                <div className="bg-cyber-pink/10 border-l-4 border-cyber-pink p-4 rounded-r-xl">
+                                    <p className="font-bold text-white">"<span className="text-cyber-pink font-black">Please</span> ask an adult for help."</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Warnings */}
+                        <div className="cyber-panel neon-border-red rounded-3xl p-8 transform transition hover:scale-105">
+                            <div className="text-5xl mb-4 text-center">⚠️</div>
+                            <h3 className="text-2xl font-black text-center mb-4 text-cyber-red">Warnings</h3>
+                            <p className="text-gray-400 font-bold text-center mb-6">Telling someone to avoid danger using 'Never'.</p>
+                            <div className="space-y-4">
+                                <div className="bg-cyber-red/10 border-l-4 border-cyber-red p-4 rounded-r-xl">
+                                    <p className="font-bold text-white">"<span className="text-cyber-red font-black">Never</span> click a suspicious link just because someone tells you to."</p>
+                                </div>
+                                <div className="bg-cyber-red/10 border-l-4 border-cyber-red p-4 rounded-r-xl">
+                                    <p className="font-bold text-white">"<span className="text-cyber-red font-black">Never</span> enter your password on a suspicious website."</p>
+                                </div>
+                                <div className="bg-cyber-red/10 border-l-4 border-cyber-red p-4 rounded-r-xl">
+                                    <p className="font-bold text-white">"<span className="text-cyber-red font-black">Never</span> share your personal information with strangers."</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ClickOrSkipView = () => {
+            const [currentCaseIndex, setCurrentCaseIndex] = useState(0);
+            const [feedback, setFeedback] = useState(null); 
+            const [isScanning, setIsScanning] = useState(false);
+
+            const currentCase = gameCases[currentCaseIndex];
+
+            // Randomize options for display (but keep logic intact)
+            const [shuffledOptions, setShuffledOptions] = useState([]);
+            
+            useEffect(() => {
+                const optionsWithIndex = currentCase.options.map((opt, i) => ({ text: opt, originalIndex: i }));
+                const shuffled = [...optionsWithIndex].sort(() => Math.random() - 0.5);
+                setShuffledOptions(shuffled);
+            }, [currentCaseIndex]);
+
+            const handleAnswer = (originalIndex) => {
+                setIsScanning(true);
+                setTimeout(() => {
+                    setIsScanning(false);
+                    const isCorrect = originalIndex === currentCase.correct;
+                    setFeedback({
+                        isCorrect,
+                        text: isCorrect ? "THREAT AVOIDED!" : "SYSTEM BREACH DETECTED!"
+                    });
+                }, 800); // Fake scan delay
+            };
+
+            const nextCase = () => {
+                setFeedback(null);
+                if (currentCaseIndex < gameCases.length - 1) {
+                    setCurrentCaseIndex(currentCaseIndex + 1);
+                } else {
+                    setCurrentCaseIndex(0); 
+                }
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in flex flex-col items-center pb-24">
+                    <div className="text-center mb-8">
+                        <p className="font-tech text-cyber-pink tracking-[0.2em] mb-2 text-xl">SIMULATION MODULE</p>
+                        <h2 className="text-5xl font-black text-white mb-2">🚦 CLICK OR SKIP?</h2>
+                        <p className="text-xl font-bold text-cyber-cyan">Read the message and decide what to do!</p>
+                    </div>
+
+                    <div className="cyber-panel neon-border-cyan w-full max-w-md rounded-3xl overflow-hidden relative shadow-[0_0_30px_rgba(0,243,255,0.2)]">
+                        {/* Status Bar */}
+                        <div className="bg-black/60 px-4 py-3 flex justify-between items-center border-b border-cyber-cyan/30">
+                            <span className="text-sm font-tech text-cyber-cyan">CASE_FILE: {currentCaseIndex + 1}/{gameCases.length}</span>
+                            <span className="text-cyber-green text-xs font-tech animate-pulse">● SECURE CONNECTION</span>
+                        </div>
+
+                        {/* Phone Content */}
+                        <div className="p-6 bg-[#0a0a1a] min-h-[300px] flex flex-col relative overflow-hidden">
+                            {isScanning && <div className="scanner-line animate-scanline"></div>}
+                            
+                            <div className="flex items-center space-x-3 mb-6">
+                                <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-2xl border border-cyber-cyan shadow-[0_0_10px_#00f3ff]">👤</div>
+                                <div>
+                                    <p className="font-bold text-lg text-white">{currentCase.sender}</p>
+                                    <p className="text-xs text-cyber-cyan font-tech">TIME: JUST NOW</p>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-cyber-panel border border-cyber-cyan/50 text-white p-4 rounded-2xl rounded-tl-none whitespace-pre-wrap font-bold text-lg shadow-md mb-4 self-start max-w-[95%] relative">
+                                {currentCase.message}
+                            </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="p-6 bg-black/60 border-t border-cyber-cyan/30">
+                            {!feedback ? (
+                                <div className="grid grid-cols-1 gap-3">
+                                    {shuffledOptions.map((opt, idx) => (
+                                        <button 
+                                            key={idx}
+                                            onClick={() => handleAnswer(opt.originalIndex)}
+                                            disabled={isScanning}
+                                            className="cyber-btn bg-cyber-panel border border-cyber-cyan/50 hover:bg-cyber-cyan hover:text-black text-white font-black py-4 px-4 rounded-xl transition-all"
+                                        >
+                                            {opt.text}
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className={`p-6 rounded-2xl animate-slide-up text-center border-2 ${feedback.isCorrect ? 'bg-cyber-green/20 border-cyber-green shadow-[0_0_15px_#39ff14]' : 'bg-cyber-red/20 border-cyber-red shadow-[0_0_15px_#ff1744]'}`}>
+                                    <h3 className={`text-2xl font-black mb-2 ${feedback.isCorrect ? 'text-cyber-green' : 'text-cyber-red'}`}>
+                                        {feedback.isCorrect ? '✅ ' : '❌ '}{feedback.text}
+                                    </h3>
+                                    <p className="font-bold text-white mb-6">{currentCase.explanation}</p>
+                                    <button 
+                                        onClick={nextCase}
+                                        className={`cyber-btn font-black py-3 px-8 rounded-full text-black uppercase tracking-wider w-full ${feedback.isCorrect ? 'bg-cyber-green' : 'bg-cyber-red text-white'}`}
+                                    >
+                                        {currentCaseIndex < gameCases.length - 1 ? "SCAN NEXT MESSAGE ➡️" : "REBOOT SIMULATION 🔄"}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const QuizView = ({ setView }) => {
+            const [currentQ, setCurrentQ] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showResult, setShowResult] = useState(false);
+            const [selectedAnswer, setSelectedAnswer] = useState(null);
+            const [isEvaluating, setIsEvaluating] = useState(false);
+
+            const question = quizQuestions[currentQ];
+
+            const handleSelect = (idx) => {
+                if (isEvaluating) return;
+                setSelectedAnswer(idx);
+                setIsEvaluating(true);
+                
+                const correct = idx === question.correct;
+                if (correct) setScore(prev => prev + 1);
+
+                setTimeout(() => {
+                    if (currentQ < quizQuestions.length - 1) {
+                        setCurrentQ(prev => prev + 1);
+                        setSelectedAnswer(null);
+                        setIsEvaluating(false);
+                    } else {
+                        setShowResult(true);
+                    }
+                }, 3000); 
+            };
+
+            const resetQuiz = () => {
+                setCurrentQ(0);
+                setScore(0);
+                setShowResult(false);
+                setSelectedAnswer(null);
+                setIsEvaluating(false);
+            };
+
+            if (showResult) {
+                let title = "🔎 DETECTIVE IN TRAINING";
+                let msg = "Keep practicing! Never click before you check!";
+                let icon = "🔎";
+                let colorClass = "cyber-cyan";
+                
+                if (score === 5) { title = "🏆 MASTER DETECTIVE"; msg = "Amazing! You are very careful online!"; icon = "🌟"; colorClass = "cyber-yellow"; }
+                else if (score === 4) { title = "🥇 SMART DETECTIVE"; msg = "Great job! Keep checking before you click!"; icon = "👏"; colorClass = "cyber-green"; }
+                else if (score === 3) { title = "🥈 JUNIOR DETECTIVE"; msg = "Good work! Remember: STOP, CHECK, DECIDE!"; icon = "👍"; }
+
+                return (
+                    <div className="max-w-2xl mx-auto px-4 py-12 animate-slide-up text-center pb-24">
+                        <div className={`cyber-panel border-4 border-${colorClass} rounded-3xl p-8 shadow-[0_0_30px_currentColor] text-${colorClass}`}>
+                            <div className="text-8xl mb-6 animate-float">{icon}</div>
+                            <h2 className="text-2xl font-tech text-white mb-2 tracking-widest">AGENT CERTIFICATION SCORE</h2>
+                            <div className={`text-7xl font-black mb-4 text-glow-${colorClass.split('-')[1]}`}>{score}/{quizQuestions.length}</div>
+                            <h3 className={`text-4xl font-black mb-4`}>{title}</h3>
+                            <p className="text-2xl font-bold text-white mb-8">{msg}</p>
+                            
+                            <div className="bg-black/50 p-6 rounded-2xl mb-8 border border-dashed border-gray-500">
+                                <h4 className="font-black text-xl text-cyber-cyan mb-3 tracking-widest uppercase">🏆 Digital Safety Badge Earned</h4>
+                                <p className="font-bold text-gray-300">This student knows how to:</p>
+                                <div className="flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-6 my-4 font-black text-lg text-white">
+                                    <span className="bg-cyber-red/20 px-4 py-2 rounded-lg border border-cyber-red">🛑 STOP</span>
+                                    <span className="bg-cyber-yellow/20 px-4 py-2 rounded-lg border border-cyber-yellow">🔍 CHECK</span>
+                                    <span className="bg-cyber-cyan/20 px-4 py-2 rounded-lg border border-cyber-cyan">🧠 DECIDE</span>
+                                </div>
+                                <p className="font-tech text-cyber-green animate-pulse">STATUS: BE SMART BEFORE YOU CLICK!</p>
+                            </div>
+
+                            <button onClick={resetQuiz} className="cyber-btn bg-white text-black font-black py-4 px-8 rounded-full text-xl hover:bg-gray-200 transition-all uppercase tracking-widest">
+                                PLAY AGAIN 🔄
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-in pb-24">
+                    <div className="mb-8">
+                        <div className="flex justify-between font-tech text-cyber-cyan mb-2 text-lg">
+                            <span>DATA_NODE: {currentQ + 1} / {quizQuestions.length}</span>
+                            <span>SCORE: {score}</span>
+                        </div>
+                        <div className="w-full bg-gray-800 rounded-full h-3 border border-cyber-cyan/30">
+                            <div className="bg-cyber-cyan h-full rounded-full transition-all duration-500 shadow-[0_0_10px_#00f3ff]" style={{ width: `${((currentQ) / quizQuestions.length) * 100}%` }}></div>
+                        </div>
+                    </div>
+
+                    <div className="cyber-panel neon-border-pink rounded-3xl p-8">
+                        <h3 className="text-2xl md:text-3xl font-black text-white mb-8 leading-tight">{question.q}</h3>
+                        
+                        <div className="grid grid-cols-1 gap-4">
+                            {question.opts.map((opt, idx) => {
+                                let btnClass = "bg-cyber-panel border-cyber-cyan/30 text-gray-300 hover:border-cyber-cyan hover:text-white";
+                                if (isEvaluating) {
+                                    if (idx === question.correct) btnClass = "bg-cyber-green text-black border-cyber-green shadow-[0_0_15px_#39ff14] animate-pulse";
+                                    else if (idx === selectedAnswer) btnClass = "bg-cyber-red text-white border-cyber-red shadow-[0_0_15px_#ff1744]";
+                                    else btnClass = "bg-cyber-panel opacity-40 border-gray-700";
+                                }
+
+                                return (
+                                    <button
+                                        key={idx}
+                                        onClick={() => handleSelect(idx)}
+                                        disabled={isEvaluating}
+                                        className={`text-left text-lg font-bold p-4 rounded-xl border-2 transition-all duration-300 ${btnClass} ${!isEvaluating && 'cyber-btn'}`}
+                                    >
+                                        <span className={`inline-block w-8 text-center rounded-md mr-3 py-1 font-tech ${isEvaluating && idx === question.correct ? 'bg-black/30' : 'bg-white/10'}`}>
+                                            {String.fromCharCode(65 + idx)}
+                                        </span>
+                                        {opt}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {isEvaluating && (
+                            <div className={`mt-6 p-5 rounded-xl font-bold text-lg animate-fade-in ${selectedAnswer === question.correct ? 'bg-cyber-green/20 text-cyber-green border border-cyber-green' : 'bg-cyber-red/20 text-cyber-red border border-cyber-red'}`}>
+                                <div className="flex items-center mb-2">
+                                    <span className="text-2xl mr-2">{selectedAnswer === question.correct ? '✅' : '❌'}</span>
+                                    <span className="uppercase tracking-widest font-tech">{selectedAnswer === question.correct ? 'ACCESS GRANTED' : 'ACCESS DENIED'}</span>
+                                </div>
+                                <p className="text-white">{question.explanation}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const PresentationView = () => {
+            return (
+                <div className="min-h-[80vh] flex flex-col items-center justify-center text-center p-4 md:p-8 animate-fade-in pb-24">
+                    <div className="max-w-4xl w-full">
+                        <div className="mb-10 inline-block border-b-2 border-cyber-cyan pb-2">
+                            <p className="font-tech text-cyber-pink tracking-[0.3em] text-lg mb-2">LIVE COMMS FEED</p>
+                            <h2 className="text-4xl md:text-5xl font-black text-white flex items-center justify-center text-glow-cyan">
+                                <span className="mr-4">🎤</span> 1-Minute Briefing
+                            </h2>
+                        </div>
+                        
+                        <div className="cyber-panel neon-border-cyan rounded-3xl p-8 md:p-12 text-left shadow-[0_0_30px_rgba(0,243,255,0.1)] relative">
+                            <div className="absolute top-4 right-6 text-cyber-cyan font-tech opacity-50 animate-pulse">REC ●</div>
+                            
+                            <div className="text-2xl md:text-3xl font-bold text-gray-200 leading-relaxed space-y-6">
+                                <p>"Good morning, everyone!"</p>
+                                
+                                <div className="bg-cyber-yellow/10 border border-cyber-yellow p-6 rounded-2xl transform -rotate-1 shadow-lg">
+                                    <p className="text-cyber-yellow font-black">
+                                        "Imagine you receive a message saying, 'Congratulations! You won a free smartphone! Click here NOW!' Would you click it?"
+                                    </p>
+                                </div>
+                                
+                                <p className="text-cyber-red font-black text-5xl md:text-7xl text-center my-8 text-glow-red tracking-widest animate-pulse-glow">
+                                    "STOP!"
+                                </p>
+                                
+                                <p>"A suspicious link can be a trap."</p>
+                                <p>"Today, we want to introduce our digital safety teaching aid called <span className="text-cyber-cyan font-black">Link Detective</span>."</p>
+                                <p>"Our guide has three simple steps."</p>
+                                
+                                <div className="space-y-6 bg-black/40 p-6 rounded-2xl border-l-4 border-cyber-pink my-6">
+                                    <p><span className="text-cyber-red font-black text-3xl">First, STOP!</span><br/>Please don't click the link immediately.</p>
+                                    <p><span className="text-cyber-yellow font-black text-3xl">Next, CHECK!</span><br/>Check the sender and the website address carefully. Look for strange links, unknown senders, and messages that promise free prizes.</p>
+                                    <p><span className="text-cyber-cyan font-black text-3xl">Finally, DECIDE!</span><br/>If the link looks suspicious, don't click it. Delete it, report it, or ask an adult for help.</p>
+                                </div>
+
+                                <p className="text-center mt-8">"Remember our safety code:</p>
+                                <div className="flex justify-center my-4">
+                                    <div className="bg-white text-black font-black text-3xl px-6 py-3 rounded-xl tracking-widest shadow-[0_0_20px_#ffffff]">
+                                        STOP. CHECK. DECIDE.
+                                    </div>
+                                </div>
+                                <p className="text-center">"Because smart students don't click first — they check first!"</p>
+                                <p className="text-center font-black text-cyber-cyan">"Thank you!"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const TeacherModeView = () => {
+            return (
+                <div className="max-w-5xl mx-auto px-4 py-8 animate-fade-in pb-24">
+                    <div className="text-center mb-10">
+                        <p className="font-tech text-cyber-red tracking-[0.3em] mb-2 text-xl">DIRECTOR'S CONSOLE</p>
+                        <h2 className="text-5xl font-black text-white">👨‍🏫 Teacher's Guide</h2>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="cyber-panel neon-border-green rounded-3xl p-8">
+                            <h3 className="text-2xl font-black mb-4 text-cyber-green flex items-center">
+                                <span className="text-3xl mr-2">🎯</span> Learning Objective
+                            </h3>
+                            <div className="bg-cyber-green/10 border border-cyber-green p-6 rounded-xl">
+                                <p className="text-xl text-white font-bold leading-relaxed">
+                                    "Students can identify suspicious links and explain safe actions using simple English."
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="cyber-panel neon-border-cyan rounded-3xl p-8">
+                            <h3 className="text-2xl font-black mb-4 text-cyber-cyan flex items-center">
+                                <span className="text-3xl mr-2">🗣️</span> Required Language
+                            </h3>
+                            <ul className="space-y-4 text-lg font-bold text-gray-200">
+                                <li className="flex items-center"><span className="bg-cyber-cyan/20 text-cyber-cyan font-tech px-3 py-1 rounded border border-cyber-cyan mr-4">1+</span> Polite imperative (Please...)</li>
+                                <li className="flex items-center"><span className="bg-cyber-cyan/20 text-cyber-cyan font-tech px-3 py-1 rounded border border-cyber-cyan mr-4">1+</span> Warning (Never...)</li>
+                                <li className="flex items-center"><span className="bg-cyber-cyan/20 text-cyber-cyan font-tech px-3 py-1 rounded border border-cyber-cyan mr-4">2+</span> Sequencing words (First, Next, Finally)</li>
+                            </ul>
+                        </div>
+
+                        <div className="md:col-span-2 cyber-panel neon-border-pink rounded-3xl p-10 text-center relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-cyber-pink/20 blur-[50px] rounded-full"></div>
+                            <h3 className="text-3xl font-black mb-4 text-white">⚡ Quick Classroom Activity</h3>
+                            <p className="text-2xl font-bold mb-8 text-cyber-cyan">Read a message out loud to the class and ask them to show:</p>
+                            <div className="flex justify-center space-x-6 md:space-x-12 text-3xl md:text-4xl font-black">
+                                <div className="flex flex-col items-center bg-cyber-green/20 border border-cyber-green p-6 rounded-2xl w-40 md:w-56">
+                                    <span className="text-6xl mb-4 drop-shadow-md">👍</span>
+                                    <span className="text-cyber-green tracking-wider">SAFE</span>
+                                </div>
+                                <div className="flex flex-col items-center bg-cyber-red/20 border border-cyber-red p-6 rounded-2xl w-40 md:w-56">
+                                    <span className="text-6xl mb-4 drop-shadow-md">✋</span>
+                                    <span className="text-cyber-red tracking-wider">SUSPICIOUS</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [currentView, setCurrentView] = useState('home');
+
+            useEffect(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, [currentView]);
+
+            const renderView = () => {
+                switch(currentView) {
+                    case 'home': return <HomeView setView={setCurrentView} />;
+                    case 'mission': return <MissionView />;
+                    case 'english': return <EnglishToolsView />;
+                    case 'game': return <ClickOrSkipView />;
+                    case 'quiz': return <QuizView setView={setCurrentView} />;
+                    case 'presentation': return <PresentationView />;
+                    case 'teacher': return <TeacherModeView />;
+                    default: return <HomeView setView={setCurrentView} />;
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col font-sans relative">
+                    {/* Background decor */}
+                    <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] overflow-hidden">
+                        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyber-cyan/10 blur-[100px] rounded-full mix-blend-screen"></div>
+                        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyber-pink/10 blur-[100px] rounded-full mix-blend-screen"></div>
+                    </div>
+
+                    <main className="flex-grow pt-8 overflow-x-hidden relative z-10">
+                        {renderView()}
+                    </main>
+                    <Navigation currentView={currentView} setView={setCurrentView} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
